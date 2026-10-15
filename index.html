@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欢迎回家</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "SimSun", "宋体", serif;
+            background: #f5f0e8; /* 米白底色，让白色块清晰可见 */
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ========== 上半部分：交叠的大块 ========== */
+        .blocks-area {
+            position: relative;
+            height: 55vh;
+            width: 100%;
+        }
+
+        .block {
+            position: absolute;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+            border-radius: 4px;
+        }
+
+        .block.white {
+            background: #ffffff;
+            border: 2px solid #e0d9cc; /* 给白块加细边框，突出轮廓 */
+        }
+
+        .block.blue {
+            background: #003153; /* 普蓝色 */
+        }
+
+        /* 各块的位置、大小（多个，且交叠） */
+        .b1 { width: 260px; height: 260px; top: 8%;  left: 4%;  z-index: 1; }
+        .b2 { width: 300px; height: 220px; top: 20%; left: 18%; z-index: 2; }
+        .b3 { width: 240px; height: 280px; top: 5%;  left: 38%; z-index: 1; }
+        .b4 { width: 280px; height: 240px; top: 30%; left: 55%; z-index: 3; }
+        .b5 { width: 230px; height: 230px; top: 12%; left: 72%; z-index: 2; }
+        .b6 { width: 200px; height: 260px; top: 40%; left: 84%; z-index: 1; }
+        .b7 { width: 260px; height: 200px; top: 48%; left: 8%;  z-index: 3; }
+        .b8 { width: 220px; height: 220px; top: 55%; left: 30%; z-index: 2; }
+        .b9 { width: 300px; height: 240px; top: 60%; left: 52%; z-index: 4; }
+
+        /* 让部分块轻微旋转，交叠更自然 */
+        .b2 { transform: rotate(-6deg); }
+        .b4 { transform: rotate(5deg); }
+        .b6 { transform: rotate(-4deg); }
+        .b8 { transform: rotate(7deg); }
+
+        /* ========== 下半部分：大字 + 链接 ========== */
+        .lower-area {
+            position: relative;
+            text-align: center;
+            padding: 40px 20px 80px;
+        }
+
+        .welcome {
+            font-family: "SimSun", "宋体", serif;
+            font-size: 96px;
+            font-weight: 700;
+            letter-spacing: 18px;
+            color: #1a1a1a;
+            line-height: 1.3;
+        }
+
+        .link-wrap {
+            margin-top: 40px;
+        }
+
+        .link-wrap a {
+            font-family: "SimSun", "宋体", serif;
+            font-size: 32px;
+            color: #003153;
+            text-decoration: none;
+            border: 2px solid #003153;
+            border-radius: 40px;
+            padding: 14px 48px;
+            display: inline-block;
+            transition: all 0.25s ease;
+        }
+
+        .link-wrap a:hover {
+            background: #003153;
+            color: #ffffff;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .welcome { font-size: 56px; letter-spacing: 8px; }
+            .block { transform: scale(0.7); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 上半部分：白色大块与普蓝色大块交叠（多个） -->
+    <div class="blocks-area">
+        <div class="block white b1"></div>
+        <div class="block blue  b2"></div>
+        <div class="block white b3"></div>
+        <div class="block blue  b4"></div>
+        <div class="block white b5"></div>
+        <div class="block blue  b6"></div>
+        <div class="block white b7"></div>
+        <div class="block blue  b8"></div>
+        <div class="block white b9"></div>
+    </div>
+
+    <!-- 下半部分：宋体大字 + 链接 -->
+    <div class="lower-area">
+        <div class="welcome">欢迎回家</div>
+        <div class="link-wrap">
+            <a href="https://www.aufe.edu.cn/" target="_blank">点我</a>
+        </div>
+    </div>
+
+</body>
+</html>
