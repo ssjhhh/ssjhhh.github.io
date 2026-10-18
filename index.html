@@ -25,10 +25,7 @@
   }
   #app { min-height: 100%; }
 
-  .topbar {
-    position: fixed; top: 14px; right: 16px; z-index: 30;
-    display: flex; gap: 8px;
-  }
+  .topbar { position: fixed; top: 14px; right: 16px; z-index: 30; display: flex; gap: 8px; }
   .topbar button {
     border: 1px solid var(--line); background: var(--card); color: var(--ink);
     font-family: inherit; font-size: 13px; cursor: pointer;
@@ -53,6 +50,17 @@
     content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
     width: 34px; height: 3px; border-radius: 3px; background: var(--c); opacity: .7;
   }
+  .card.custom { border: 2px dashed var(--line); background: transparent; }
+  .card.custom::before { display: none; }
+  .card.custom:hover { border-color: var(--accent); color: var(--accent); box-shadow: none; }
+  .plus { font-size: 34px; font-weight: 300; line-height: 1; color: var(--muted); }
+  .card.custom:hover .plus { color: var(--accent); }
+  .card-del {
+    position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%;
+    border: none; background: rgba(0, 0, 0, .06); color: var(--muted); font-size: 15px; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; font-family: inherit;
+  }
+  .card-del:hover { background: var(--accent); color: #fff; }
   .avatar { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 38px; background: var(--bg, #fbe9e2); }
   .avatar.sm { width: 44px; height: 44px; font-size: 24px; }
   .avatar.xs { width: 30px; height: 30px; font-size: 16px; flex-shrink: 0; }
@@ -81,6 +89,8 @@
   }
   .msg.user .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 6px; }
   .msg.assistant .bubble { border-bottom-left-radius: 6px; }
+  .bubble.warn { color: #c0392b; background: #fdecea; border: 1px solid #f5c6c2; box-shadow: none; }
+  .bubble.stop { color: #a93226; background: #fadbd8; border: 1px solid #e74c3c; box-shadow: none; font-weight: 600; }
   .typing { display: flex; gap: 5px; align-items: center; padding: 17px 16px; }
   .typing .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
   .typing .dot:nth-child(2) { animation-delay: .2s; }
@@ -93,27 +103,37 @@
   .send:hover { filter: brightness(1.05); }
   .send:disabled { opacity: .5; cursor: default; }
 
+  .notice { position: fixed; inset: 0; z-index: 1000; background: rgba(40, 30, 20, .55); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .notice-card { width: 100%; max-width: 540px; background: #fffdf9; border-radius: 18px; box-shadow: 0 30px 80px rgba(0, 0, 0, .35); display: flex; flex-direction: column; max-height: 88vh; }
+  .notice-head { padding: 22px 26px 14px; border-bottom: 1px solid var(--line); }
+  .notice-head h2 { font-size: 20px; }
+  .notice-body { padding: 16px 26px; overflow-y: auto; font-size: 14px; line-height: 1.8; color: var(--ink); }
+  .notice-body ol { margin: 0; padding-left: 20px; }
+  .notice-body li { margin: 8px 0; }
+  .notice-foot { padding: 16px 26px 22px; border-top: 1px solid var(--line); display: flex; gap: 12px; }
+
   .overlay {
     position: fixed; inset: 0; background: rgba(60, 45, 30, .35); backdrop-filter: blur(3px);
     display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px;
   }
   .overlay.show { display: flex; }
   .modal {
-    width: 100%; max-width: 440px; background: var(--card); border-radius: 16px;
-    padding: 28px 26px 24px; box-shadow: 0 30px 70px rgba(0, 0, 0, .25);
+    width: 100%; max-width: 460px; background: var(--card); border-radius: 16px;
+    padding: 26px 24px 22px; box-shadow: 0 30px 70px rgba(0, 0, 0, .25); max-height: 90vh; overflow-y: auto;
   }
   .modal h2 { font-size: 20px; margin-bottom: 4px; }
-  .modal .tip { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+  .modal .tip { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
   .field-label { font-size: 13px; color: var(--ink); margin: 14px 0 6px; font-weight: 600; }
   .field {
     width: 100%; font-family: inherit; font-size: 14px; color: var(--ink);
     padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px; outline: none; background: #fffdfa;
   }
   .field:focus { border-color: var(--accent); }
-  .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .textarea { resize: vertical; line-height: 1.7; min-height: 180px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
   .btn {
     flex: 1; border: none; font-family: inherit; font-size: 15px; cursor: pointer;
-    padding: 11px; border-radius: 12px; font-weight: 600;
+    padding: 12px; border-radius: 12px; font-weight: 600;
   }
   .btn.primary { background: var(--accent); color: #fff; }
   .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
@@ -127,6 +147,31 @@
     <button id="settingsBtn" type="button">⚙ 接口设置</button>
   </div>
 
+  <!-- 门禁提示框 -->
+  <div class="notice" id="noticeOverlay">
+    <div class="notice-card">
+      <div class="notice-head"><h2>温馨提示</h2></div>
+      <div class="notice-body">
+        <p>为维护良好秩序，营造安全、文明、和谐的交流环境，现就内容发布与交流作如下提示：</p>
+        <ol>
+          <li>适用范围：本通知适用于网页内的所有用户及发布内容。</li>
+          <li>禁止内容：不得发布、转发、讨论或诱导他人发布涉及政治敏感、违法违规、色情低俗、暴力恐怖、赌博诈骗、毒品、仇恨歧视、侮辱诽谤、侵犯隐私、谣言虚假、侵权盗版、广告骚扰、恶意刷屏等内容。</li>
+          <li>文明交流：请理性表达、尊重他人，不进行人身攻击，不引战，不传播未经证实的信息。</li>
+          <li>隐私保护：请勿公开他人姓名、电话、住址、身份证号、账号等个人信息。</li>
+          <li>违规处理：对违规内容，管理员有权采取删除、屏蔽、警告、移出、限制功能等措施；情节严重的，依法处理。</li>
+          <li>举报配合：发现违规内容请勿扩散，及时联系管理员或通过举报渠道反馈。</li>
+          <li>本通知自发布之日起执行，最终解释权归管理员所有。</li>
+        </ol>
+        <p style="margin-top:14px">请各位共同遵守，感谢配合。</p>
+      </div>
+      <div class="notice-foot">
+        <button class="btn ghost" id="disagreeBtn" type="button">不同意</button>
+        <button class="btn primary" id="agreeBtn" type="button">同意并进入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 接口设置 -->
   <div class="overlay" id="settingsOverlay">
     <div class="modal">
       <h2>接口设置</h2>
@@ -140,6 +185,24 @@
       <div class="modal-actions">
         <button class="btn ghost" id="settingsCancel" type="button">取消</button>
         <button class="btn primary" id="settingsSave" type="button">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 自定义角色 -->
+  <div class="overlay" id="customOverlay">
+    <div class="modal">
+      <h2>自定义角色</h2>
+      <p class="tip">在下面的「角色白板」基础上，写下你想要的设定，即可和它对话。</p>
+      <div class="field-label">角色名称</div>
+      <input class="field" id="customNameInput" type="text" placeholder="例如：知心姐姐" autocomplete="off">
+      <div class="field-label">头像表情</div>
+      <input class="field" id="customEmojiInput" type="text" value="🎭" maxlength="4" autocomplete="off">
+      <div class="field-label">角色设定（白板）</div>
+      <textarea class="field textarea" id="customSystemInput" rows="10"></textarea>
+      <div class="modal-actions">
+        <button class="btn ghost" id="customCancel" type="button">取消</button>
+        <button class="btn primary" id="customSave" type="button">创建并开始对话</button>
       </div>
     </div>
   </div>
@@ -200,7 +263,37 @@
   ];
 
   var CONFIG_KEY = 'warm_chat_config_v1';
-  var state = { persona: null, history: [], busy: false };
+  var CUSTOM_KEY = 'warm_chat_custom_personas_v1';
+  var BLOCKED_WORDS = [
+    '法轮功', '六四', '天安门事件', '台独', '藏独', '疆独', '港独', '反党', '反政府', '反动', '叛国', '间谍', '颠覆国家政权', '政变', '暴动', '邪教组织', '恐怖袭击', '恐怖主义', '恐怖分子',
+    '屠杀', '虐杀', '分尸', '肢解', '碎尸', '砍头', '爆头', '凌迟', '血腥', '暴力', '杀人', '枪杀', '刺杀', '自杀', '自残', '枪支', '军火', '爆炸', '炸弹', '绑架',
+    '色情', '淫秽', '裸体', '裸照', '性交', '做爱', '强奸', '猥亵', '嫖娼', '卖淫', '妓女', '约炮', '一夜情', '成人视频', '色情片', '黄色视频',
+    '毒品', '冰毒', '海洛因', '大麻', '摇头丸', '赌博', '博彩', '诈骗', '洗钱'
+  ];
+
+  var SEVERE_WORDS = [
+    'cnm', 'cnmb', 'nmsl', '操你妈', '草泥马', '草你妈', '傻逼', '傻b', '妈的', '他妈的', '滚蛋', '去死', '王八蛋', '贱人', '婊子', '尼玛',
+    '习近平'
+  ];
+
+  var state = { persona: null, history: [], busy: false, stopped: false };
+  var app = document.getElementById('app');
+  var NL = String.fromCharCode(10);
+
+  var CUSTOM_TEMPLATE = [
+    '请扮演我自定义的角色。',
+    '',
+    '【身份与背景】',
+    '（在这里描述：这个角色是谁，做什么，来自哪里。）',
+    '',
+    '【性格与说话方式】',
+    '（在这里描述：语气、口头禅、爱好、习惯。）',
+    '',
+    '【补充设定】',
+    '（任何你希望角色知道或遵守的额外规则，可留空。）',
+    '',
+    '对话要求：请始终以这个角色自然聊天，用中文，回复简短（一般2到5句），像真人一样，不要提及你是AI或模型，除非设定里明确说明。'
+  ].join(NL);
 
   function loadConfig() {
     try {
@@ -221,11 +314,22 @@
     try { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); } catch (e) { /* ignore */ }
   }
 
-  var app = document.getElementById('app');
-  var settingsOverlay = document.getElementById('settingsOverlay');
-  var apiKeyInput = document.getElementById('apiKeyInput');
-  var baseUrlInput = document.getElementById('baseUrlInput');
-  var modelInput = document.getElementById('modelInput');
+  function loadCustomPersonas() {
+    try {
+      var raw = localStorage.getItem(CUSTOM_KEY);
+      if (raw) {
+        var arr = JSON.parse(raw);
+        if (Array.isArray(arr)) return arr;
+      }
+    } catch (e) { /* ignore */ }
+    return [];
+  }
+
+  function persistCustomPersonas() {
+    try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(customPersonas)); } catch (e) { /* ignore */ }
+  }
+
+  var customPersonas = loadCustomPersonas();
 
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -234,6 +338,32 @@
     return n;
   }
 
+  function containsAny(text, words) {
+    var t = String(text || '');
+    for (var i = 0; i < words.length; i++) {
+      if (t.indexOf(words[i]) !== -1) return true;
+    }
+    return false;
+  }
+
+  // ---- 门禁提示框 ----
+  var noticeOverlay = document.getElementById('noticeOverlay');
+  document.getElementById('agreeBtn').addEventListener('click', function () {
+    noticeOverlay.style.display = 'none';
+  });
+  document.getElementById('disagreeBtn').addEventListener('click', function () {
+    try { window.close(); } catch (e) {}
+    document.open();
+    document.write('<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>已退出</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:-apple-system,sans-serif;background:#faf6ef;color:#40382f}.box{text-align:center;padding:24px}h1{font-size:20px;margin-bottom:8px}p{color:#9a8f80;font-size:14px}</style></head><body><div class="box"><h1>你已选择不同意，页面已退出</h1><p>请关闭此标签页。</p></div></body></html>');
+    document.close();
+  });
+
+  // ---- 接口设置 ----
+  var settingsOverlay = document.getElementById('settingsOverlay');
+  var apiKeyInput = document.getElementById('apiKeyInput');
+  var baseUrlInput = document.getElementById('baseUrlInput');
+  var modelInput = document.getElementById('modelInput');
+
   function openSettings() {
     var cfg = loadConfig();
     apiKeyInput.value = cfg.apiKey;
@@ -241,10 +371,7 @@
     modelInput.value = cfg.model;
     settingsOverlay.classList.add('show');
   }
-
-  function closeSettings() {
-    settingsOverlay.classList.remove('show');
-  }
+  function closeSettings() { settingsOverlay.classList.remove('show'); }
 
   document.getElementById('settingsBtn').addEventListener('click', openSettings);
   document.getElementById('settingsCancel').addEventListener('click', closeSettings);
@@ -260,6 +387,52 @@
     if (e.target === settingsOverlay) closeSettings();
   });
 
+  // ---- 自定义角色 ----
+  var customOverlay = document.getElementById('customOverlay');
+  var customNameInput = document.getElementById('customNameInput');
+  var customEmojiInput = document.getElementById('customEmojiInput');
+  var customSystemInput = document.getElementById('customSystemInput');
+
+  document.getElementById('customCancel').addEventListener('click', function () { customOverlay.classList.remove('show'); });
+  document.getElementById('customSave').addEventListener('click', saveCustom);
+  customOverlay.addEventListener('click', function (e) { if (e.target === customOverlay) customOverlay.classList.remove('show'); });
+
+  function openCustom() {
+    customNameInput.value = '';
+    customEmojiInput.value = '🎭';
+    customSystemInput.value = CUSTOM_TEMPLATE;
+    customOverlay.classList.add('show');
+    customNameInput.focus();
+  }
+
+  function saveCustom() {
+    var name = customNameInput.value.trim() || '自定义角色';
+    var emoji = customEmojiInput.value.trim() || '🎭';
+    var system = customSystemInput.value.trim() || CUSTOM_TEMPLATE;
+    var p = {
+      id: 'custom_' + Date.now(),
+      name: name,
+      emoji: emoji,
+      tagline: '我的自定义角色',
+      color: '#c27ba0',
+      bg: '#f6e8f0',
+      greeting: '你好，我是「' + name + '」，想聊点什么？',
+      temperature: 0.9,
+      system: system,
+      custom: true
+    };
+    customPersonas.push(p);
+    persistCustomPersonas();
+    customOverlay.classList.remove('show');
+    selectPersona(p);
+  }
+
+  function removeCustom(id) {
+    customPersonas = customPersonas.filter(function (p) { return p.id !== id; });
+    persistCustomPersonas();
+    renderSelect();
+  }
+
   function renderSelect() {
     app.innerHTML = '';
     var wrap = el('div', 'hero');
@@ -267,9 +440,11 @@
     var h1 = el('h1', 'title'); h1.textContent = '找一个伙伴，聊聊天';
     var sub = el('p', 'subtitle'); sub.textContent = '选择一位你此刻想对话的人';
     var grid = el('div', 'grid');
-    PERSONAS.forEach(function (p) {
-      var card = el('button', 'card');
-      card.setAttribute('type', 'button');
+
+    PERSONAS.concat(customPersonas).forEach(function (p) {
+      var card = el('div', 'card');
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
       card.style.setProperty('--c', p.color);
       card.style.setProperty('--bg', p.bg);
       var av = el('div', 'avatar'); av.textContent = p.emoji;
@@ -277,8 +452,27 @@
       var tg = el('div', 'tag'); tg.textContent = p.tagline;
       card.appendChild(av); card.appendChild(nm); card.appendChild(tg);
       card.addEventListener('click', function () { selectPersona(p); });
+      card.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') selectPersona(p); });
+      if (p.custom) {
+        var del = el('button', 'card-del');
+        del.setAttribute('type', 'button');
+        del.textContent = '×';
+        del.setAttribute('title', '删除该角色');
+        del.addEventListener('click', function (ev) { ev.stopPropagation(); removeCustom(p.id); });
+        card.appendChild(del);
+      }
       grid.appendChild(card);
     });
+
+    var addCard = el('button', 'card custom');
+    addCard.setAttribute('type', 'button');
+    var plus = el('div', 'plus'); plus.textContent = '＋';
+    var anm = el('div', 'name'); anm.textContent = '自定义角色';
+    var atg = el('div', 'tag'); atg.textContent = '在角色白板上创建你的专属角色';
+    addCard.appendChild(plus); addCard.appendChild(anm); addCard.appendChild(atg);
+    addCard.addEventListener('click', openCustom);
+    grid.appendChild(addCard);
+
     var foot = el('div', 'footer');
     foot.textContent = '回复由大模型生成 · 密钥仅存于本地浏览器';
     wrap.appendChild(logo); wrap.appendChild(h1); wrap.appendChild(sub);
@@ -289,6 +483,7 @@
   function selectPersona(p) {
     state.persona = p;
     state.history = [];
+    state.stopped = false;
     renderChat();
     addMessage('assistant', p.greeting);
   }
@@ -298,13 +493,9 @@
     app.innerHTML = '';
     var shell = el('div', 'chat');
     var head = el('div', 'chathead');
-    var back = el('button', 'back');
-    back.setAttribute('type', 'button');
-    back.textContent = '‹ 返回';
-    back.addEventListener('click', renderSelect);
+    var back = el('button', 'back'); back.setAttribute('type', 'button'); back.textContent = '‹ 返回'; back.addEventListener('click', renderSelect);
     var who = el('div', 'who');
-    var av = el('div', 'avatar sm'); av.textContent = p.emoji;
-    av.style.setProperty('--c', p.color); av.style.setProperty('--bg', p.bg);
+    var av = el('div', 'avatar sm'); av.textContent = p.emoji; av.style.setProperty('--c', p.color); av.style.setProperty('--bg', p.bg);
     var nm = el('div', 'name'); nm.textContent = p.name;
     var tg = el('div', 'tag'); tg.textContent = p.tagline;
     who.appendChild(av); who.appendChild(nm); who.appendChild(tg);
@@ -324,11 +515,25 @@
 
     function submit() {
       var text = input.value.trim();
-      if (!text || state.busy) return;
+      if (!text || state.busy || state.stopped) return;
+      if (containsAny(text, SEVERE_WORDS)) {
+        addStop('⚠ 检测到严重违规内容，对话已停止。请点击返回，重新选择角色。');
+        input.value = '';
+        input.disabled = true;
+        input.setAttribute('placeholder', '对话已停止');
+        send.disabled = true;
+        state.stopped = true;
+        return;
+      }
+      if (containsAny(text, BLOCKED_WORDS)) {
+        addWarn('消息包含敏感内容，已被拦截。请遵守平台规范，文明交流。');
+        input.focus();
+        return;
+      }
       var cfg = loadConfig();
       if (!cfg.apiKey) {
         openSettings();
-        addMessage('assistant', '（还没有配置 API Key，先点右上角「接口设置」填一下，就能开始聊天啦）');
+        addWarn('还没有配置 API Key，先点右上角「接口设置」填一下，就能开始聊天啦');
         return;
       }
       input.value = '';
@@ -355,9 +560,7 @@
         })
       }).then(function (resp) {
         return resp.json().then(function (data) {
-          if (!resp.ok) {
-            throw { status: resp.status, data: data };
-          }
+          if (!resp.ok) { throw { status: resp.status, data: data }; }
           return data;
         });
       }).then(function (data) {
@@ -366,19 +569,19 @@
           state.history.push({ role: 'assistant', content: reply });
           addMessage('assistant', reply);
         } else {
-          addMessage('assistant', '（没有收到有效回复，请检查接口返回格式）');
+          addWarn('没有收到有效回复，请检查接口返回格式');
         }
       }).catch(function (e) {
         if (e && e.status) {
-          if (e.status === 401) addMessage('assistant', '（接口返回 401：API Key 无效或未授权，请检查密钥）');
-          else if (e.status === 404) addMessage('assistant', '（接口返回 404：Base URL 或路径不正确）');
-          else if (e.status === 429) addMessage('assistant', '（请求过于频繁，稍后再试）');
+          if (e.status === 401) addWarn('接口返回 401：API Key 无效或未授权，请检查密钥');
+          else if (e.status === 404) addWarn('接口返回 404：Base URL 或路径不正确');
+          else if (e.status === 429) addWarn('请求过于频繁，稍后再试');
           else {
             var msg = (e.data && e.data.error && e.data.error.message) || ('状态码 ' + e.status);
-            addMessage('assistant', '（接口错误：' + msg + '）');
+            addWarn('接口错误：' + msg);
           }
         } else {
-          addMessage('assistant', '（无法连接接口：可能是浏览器跨域 CORS 被拦截，或网络不通。请确认 Base URL 支持浏览器跨域，或改用你自己的后端/代理地址）');
+          addWarn('无法连接接口：可能是浏览器跨域 CORS 被拦截，或网络不通。请确认 Base URL 支持浏览器跨域，或改用你自己的后端/代理地址');
         }
       }).finally(function () {
         setTyping(false);
@@ -388,9 +591,7 @@
     }
 
     send.addEventListener('click', submit);
-    input.addEventListener('keydown', function (ev) {
-      if (ev.key === 'Enter') submit();
-    });
+    input.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') submit(); });
     input.focus();
   }
 
@@ -405,6 +606,28 @@
       row.appendChild(av);
     }
     var b = el('div', 'bubble'); b.textContent = text;
+    row.appendChild(b);
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function addWarn(text) {
+    var box = document.getElementById('messages');
+    if (!box) return;
+    var row = el('div', 'msg assistant');
+    var b = el('div', 'bubble warn');
+    b.textContent = text;
+    row.appendChild(b);
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function addStop(text) {
+    var box = document.getElementById('messages');
+    if (!box) return;
+    var row = el('div', 'msg assistant');
+    var b = el('div', 'bubble stop');
+    b.textContent = text;
     row.appendChild(b);
     box.appendChild(row);
     box.scrollTop = box.scrollHeight;
