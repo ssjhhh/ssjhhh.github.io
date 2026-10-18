@@ -1,242 +1,440 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>遇AI · 选人聊天</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>暖心聊天室</title>
 <style>
-  :root{
-    --canvas:#f7f3ec;
-    --surface:#ffffff;
-    --surface-soft:#efe9de;
-    --ink:#2f2a24;
-    --ink-2:#6f665b;
-    --line:#e3dccf;
-    --accent:#c96f3f;
-    --accent-ink:#ffffff;
-    --focus:#b95f33;
-    --ok:#4f7a4f;
-    --radius-lg:22px;
-    --radius:14px;
-    --radius-sm:10px;
-    --shadow:0 10px 30px rgba(64,52,38,.10);
-    --shadow-sm:0 3px 12px rgba(64,52,38,.08);
-    --font:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-    --space-1:8px;--space-2:14px;--space-3:22px;--space-4:34px;
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #faf6ef;
+    --card: #ffffff;
+    --ink: #40382f;
+    --muted: #9a8f80;
+    --accent: #e07a5f;
+    --line: #efe6d8;
+    --radius: 18px;
+    --shadow: 0 8px 30px rgba(90, 70, 50, .08);
   }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{
-    font-family:var(--font);background:var(--canvas);color:var(--ink);
-    line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased;
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  [data-accent="#c96f3f"]{--accent:#c96f3f;--soft:#f7e3d4}
-  [data-accent="#4f7a4f"]{--accent:#4f7a4f;--soft:#dce9d9}
-  [data-accent="#3e6f9c"]{--accent:#3e6f9c;--soft:#d9e4ef}
-  [data-accent="#7a5aa6"]{--accent:#7a5aa6;--soft:#e5def0}
-  [data-accent="#2f6f6f"]{--accent:#2f6f6f;--soft:#d6e8e8}
-  [data-accent="#a04f6f"]{--accent:#a04f6f;--soft:#f0dce4}
-  [data-accent="#8a7038"]{--accent:#8a7038;--soft:#ece2c8}
+  #app { min-height: 100%; }
 
-  .app{max-width:1080px;margin:0 auto;padding:var(--space-4) var(--space-3)}
-  h1{font-size:clamp(1.6rem,3.6vw,2.4rem);line-height:1.2;margin:0 0 6px;letter-spacing:.5px}
-  .lead{color:var(--ink-2);margin:0 0 var(--space-4);font-size:1.02rem}
-  .section-label{font-size:.82rem;letter-spacing:.12em;color:var(--ink-2);margin:var(--space-3) 0 var(--space-2);text-transform:uppercase}
-
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:var(--space-2)}
-  .card{
-    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
-    padding:var(--space-3);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease;
-    display:flex;flex-direction:column;gap:var(--space-2);position:relative;min-width:0;
+  .topbar {
+    position: fixed; top: 14px; right: 16px; z-index: 30;
+    display: flex; gap: 8px;
   }
-  .card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
-  .card:active{transform:translateY(0)}
-  .card:focus-visible,.btn:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-  .card-top{display:flex;align-items:center;gap:var(--space-2)}
-  .avatar{width:64px;height:64px;flex:0 0 auto;border-radius:50%;border:3px solid var(--accent);background:var(--soft);overflow:hidden}
-  .avatar svg{width:100%;height:100%;display:block}
-  .who{min-width:0}
-  .who .name{font-size:1.14rem;font-weight:700}
-  .who .role{font-size:.82rem;color:var(--accent);font-weight:600}
-  .who .status{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;color:var(--ink-2);margin-top:3px}
-  .who .status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);flex:0 0 auto}
-  .tags{display:flex;flex-wrap:wrap;gap:6px}
-  .tag{font-size:.74rem;background:var(--surface-soft);padding:2px 9px;border-radius:999px;color:var(--ink-2)}
-  .card p{font-size:.9rem;color:var(--ink-2);margin:0;flex:1}
-  .enter{margin-top:auto;display:inline-block;width:fit-content;font-size:.86rem;font-weight:600;color:var(--accent)}
-
-  .chat{display:none;max-width:760px;margin:0 auto;flex-direction:column;height:calc(100vh - 40px)}
-  .chat.open{display:flex}
-  .chat-head{display:flex;align-items:center;gap:var(--space-2);padding:10px 0;border-bottom:1px solid var(--line)}
-  .chat-head .avatar{width:44px;height:44px;border-width:2px}
-  .chat-head .back{font-size:1.4rem;line-height:1;background:none;border:none;cursor:pointer;color:var(--ink);padding:4px 8px;border-radius:8px}
-  .chat-head .back:hover{background:var(--surface-soft)}
-  .chat-head h2{margin:0;font-size:1.1rem}
-  .chat-head .role{font-size:.78rem;color:var(--accent);font-weight:600}
-  .msgs{flex:1;overflow-y:auto;padding:var(--space-3) 2px;display:flex;flex-direction:column;gap:var(--space-2)}
-  .msg{display:flex;gap:10px;max-width:82%;animation:fade .25s ease}
-  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .msg .mini{width:36px;height:36px;flex:0 0 auto;border-radius:50%;border:2px solid var(--accent);overflow:hidden;background:var(--soft)}
-  .msg.bot{align-self:flex-start}
-  .msg.user{align-self:flex-end;flex-direction:row-reverse}
-  .bubble{padding:10px 14px;border-radius:16px;font-size:.95rem;white-space:pre-wrap;overflow-wrap:break-word}
-  .msg.bot .bubble{background:var(--surface);border:1px solid var(--line);border-top-left-radius:4px}
-  .msg.user .bubble{background:var(--accent);color:var(--accent-ink);border-top-right-radius:4px}
-  .tips{margin:2px 0 0 46px;font-size:.74rem;color:var(--ink-2)}
-  .composer{display:flex;gap:10px;padding:12px 0 6px;border-top:1px solid var(--line)}
-  .composer input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 16px;font-size:.95rem;font-family:var(--font);background:var(--surface)}
-  .composer .btn{background:var(--accent);color:var(--accent-ink);border:none;border-radius:999px;padding:0 20px;font-size:1rem;cursor:pointer;font-weight:600}
-  .composer .btn:hover{filter:brightness(1.06)}
-
-  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-  @media (max-width:560px){
-    .app{padding:var(--space-3) var(--space-2)}
-    .grid{grid-template-columns:1fr}
+  .topbar button {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    font-family: inherit; font-size: 13px; cursor: pointer;
+    padding: 7px 14px; border-radius: 999px; box-shadow: var(--shadow);
   }
-  @media print{
-    body{background:#fff}
-    .card{border-color:#000}
-    .enter,.chat{display:none}
-    .grid{grid-template-columns:1fr 1fr}
+  .topbar button:hover { border-color: var(--accent); color: var(--accent); }
+
+  .hero { max-width: 780px; margin: 0 auto; padding: 72px 24px 48px; text-align: center; }
+  .logo { font-size: 40px; margin-bottom: 10px; }
+  .title { font-size: 34px; font-weight: 700; letter-spacing: .5px; }
+  .subtitle { color: var(--muted); margin-top: 10px; font-size: 15px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 42px; }
+  @media (min-width: 640px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+  .card {
+    position: relative; border: 1px solid var(--line); background: var(--card);
+    border-radius: var(--radius); padding: 28px 14px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 9px;
+    transition: transform .18s ease, box-shadow .18s ease; font-family: inherit; color: inherit;
   }
+  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .card::before {
+    content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 34px; height: 3px; border-radius: 3px; background: var(--c); opacity: .7;
+  }
+  .avatar { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 38px; background: var(--bg, #fbe9e2); }
+  .avatar.sm { width: 44px; height: 44px; font-size: 24px; }
+  .avatar.xs { width: 30px; height: 30px; font-size: 16px; flex-shrink: 0; }
+  .name { font-weight: 600; font-size: 17px; }
+  .tag { color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .footer { color: var(--muted); font-size: 12px; margin-top: 48px; }
+
+  .chat { max-width: 780px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; }
+  .chathead {
+    display: flex; align-items: center; gap: 14px; padding: 16px 20px;
+    border-bottom: 1px solid var(--line); background: rgba(250, 246, 239, .94);
+    backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 5;
+  }
+  .back { border: none; background: transparent; color: var(--muted); cursor: pointer; font-size: 15px; font-family: inherit; padding: 6px 10px; border-radius: 10px; }
+  .back:hover { color: var(--ink); background: rgba(0, 0, 0, .04); }
+  .who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .who .name { font-size: 16px; }
+  .who .tag { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .messages { flex: 1; overflow-y: auto; padding: 26px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .msg { display: flex; gap: 10px; align-items: flex-end; }
+  .msg.user { justify-content: flex-end; }
+  .bubble {
+    max-width: 74%; padding: 12px 16px; border-radius: 16px; line-height: 1.65;
+    font-size: 15px; white-space: pre-wrap; word-break: break-word;
+    background: var(--card); box-shadow: var(--shadow);
+  }
+  .msg.user .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 6px; }
+  .msg.assistant .bubble { border-bottom-left-radius: 6px; }
+  .typing { display: flex; gap: 5px; align-items: center; padding: 17px 16px; }
+  .typing .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+  .typing .dot:nth-child(2) { animation-delay: .2s; }
+  .typing .dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+  .inputbar { display: flex; gap: 10px; padding: 14px 20px 18px; border-top: 1px solid var(--line); background: var(--bg); }
+  .input { flex: 1; border: 1px solid var(--line); background: var(--card); border-radius: 24px; padding: 12px 18px; font-size: 15px; font-family: inherit; color: var(--ink); outline: none; }
+  .input:focus { border-color: var(--accent); }
+  .send { border: none; background: var(--accent); color: #fff; font-size: 15px; font-family: inherit; padding: 12px 22px; border-radius: 24px; cursor: pointer; font-weight: 600; }
+  .send:hover { filter: brightness(1.05); }
+  .send:disabled { opacity: .5; cursor: default; }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(60, 45, 30, .35); backdrop-filter: blur(3px);
+    display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    width: 100%; max-width: 440px; background: var(--card); border-radius: 16px;
+    padding: 28px 26px 24px; box-shadow: 0 30px 70px rgba(0, 0, 0, .25);
+  }
+  .modal h2 { font-size: 20px; margin-bottom: 4px; }
+  .modal .tip { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+  .field-label { font-size: 13px; color: var(--ink); margin: 14px 0 6px; font-weight: 600; }
+  .field {
+    width: 100%; font-family: inherit; font-size: 14px; color: var(--ink);
+    padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px; outline: none; background: #fffdfa;
+  }
+  .field:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .btn {
+    flex: 1; border: none; font-family: inherit; font-size: 15px; cursor: pointer;
+    padding: 11px; border-radius: 12px; font-weight: 600;
+  }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .btn:hover { filter: brightness(1.05); }
 </style>
 </head>
 <body>
-<main class="app" id="app">
-  <header>
-    <h1 id="pageTitle">遇AI · 选个人，聊聊心里话</h1>
-    <p class="lead" id="pageLead">选一位你喜欢的人，进入和 TA 的专属对话。</p>
-  </header>
+  <div id="app"></div>
 
-  <section aria-label="选择聊天对象">
-    <div id="grid" class="grid"></div>
-  </section>
+  <div class="topbar">
+    <button id="settingsBtn" type="button">⚙ 接口设置</button>
+  </div>
 
-  <section id="chat" class="chat" aria-label="对话">
-    <div class="chat-head">
-      <button class="back" id="backBtn" aria-label="返回选择人物">‹</button>
-      <div class="avatar" id="headAvatar" aria-hidden="true"></div>
-      <div>
-        <h2 id="headName"></h2>
-        <div class="role" id="headRole"></div>
+  <div class="overlay" id="settingsOverlay">
+    <div class="modal">
+      <h2>接口设置</h2>
+      <p class="tip">填写任意兼容 OpenAI 的接口即可真实对话。密钥只保存在你的浏览器 localStorage 里，不会上传。若浏览器提示跨域（CORS）错误，请改用支持跨域的地址或你自己的后端/代理。</p>
+      <div class="field-label">API Key</div>
+      <input class="field" id="apiKeyInput" type="password" placeholder="sk-..." autocomplete="off">
+      <div class="field-label">Base URL</div>
+      <input class="field" id="baseUrlInput" type="text" placeholder="https://api.deepseek.com" autocomplete="off">
+      <div class="field-label">Model</div>
+      <input class="field" id="modelInput" type="text" placeholder="deepseek-chat" autocomplete="off">
+      <div class="modal-actions">
+        <button class="btn ghost" id="settingsCancel" type="button">取消</button>
+        <button class="btn primary" id="settingsSave" type="button">保存</button>
       </div>
     </div>
-    <div class="msgs" id="msgs" role="log" aria-live="polite"></div>
-    <div class="tips">输入的只是一句问候，TA 会以各自的方式回应。</div>
-    <form class="composer" id="composer" autocomplete="off">
-      <label for="input" class="visually-hidden" style="position:absolute;left:-9999px">输入消息</label>
-      <input id="input" type="text" placeholder="说点什么…" aria-label="输入消息">
-      <button class="btn" type="submit">发送</button>
-    </form>
-  </section>
-</main>
+  </div>
 
 <script>
-(function(){
+(function () {
   'use strict';
-  var AV = {
-    elder:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img"><title>慈祥老人</title><circle cx="40" cy="40" r="40" fill="#f7e3d4"/><path d="M14 34c0-16 12-27 26-27s26 11 26 27v8H14z" fill="#e8d3bd"/><path d="M22 26c1-15 8-19 18-19V6c14 0 23 10 23 22v6H22z" fill="#c9c2c9"/><circle cx="34" cy="44" r="4" fill="#3a332c"/><circle cx="52" cy="44" r="4" fill="#3a332c"/><path d="M32 52c3 2 13 3 20-1" stroke="#3a332c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M0 60c14 8 66 8 80 0v20H0z" fill="#c96f3f"/></svg>',
-    child:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img"><title>可爱小孩</title><circle cx="40" cy="40" r="40" fill="#dce9d9"/><path d="M14 34c0-15 11-25 26-25s26 10 26 25v8H14z" fill="#f4c8a0"/><circle cx="33" cy="28" r="5" fill="#f4c8a0"/><path d="M28 24c0-4 3-7 7-7 4 0 7 3 7 7" stroke="#3a332c" stroke-width="2" fill="none"/><circle cx="34" cy="46" r="4" fill="#3a332c"/><circle cx="52" cy="46" r="4" fill="#3a332c"/><path d="M32 54c6 4 13-1 19-2" stroke="#3a332c" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M0 60c14 8 66 8 80 0v20H0z" fill="#4f7a4f"/></svg>',
-    worker:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img"><title>职场青年</title><circle cx="40" cy="40" r="40" fill="#d9e4ef"/><path d="M14 34c0-15 11-26 26-26s26 11 26 26v9H14z" fill="#e5b48a"/><path d="M22 12h36v14H22z" fill="#3e6f9c"/><path d="M32 12v10M40 12v10M48 12v10" stroke="#a8c4dd" stroke-width="3"/><circle cx="34" cy="46" r="4" fill="#3a332c"/><circle cx="52" cy="46" r="4" fill="#3a332c"/><path d="M33 55c5 2 10 2 15-1" stroke="#3a332c" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M0 60c14 8 66 8 80 0v20H0z" fill="#2f5f8a"/></svg>',
-    student:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img"><title>青春学生</title><circle cx="40" cy="40" r="40" fill="#e5def0"/><path d="M14 34c0-15 11-26 26-26s26 11 26 26v9H14z" fill="#f1c9a6"/><path d="M20 10l20 9 20-9v12H20z" fill="#7a5aa6"/><circle cx="34" cy="46" r="4" fill="#3a332c"/><circle cx="52" cy="46" r="4" fill="#3a332c"/><path d="M32 55c10 5 18-3 20-5" stroke="#3a332c" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M0 60c14 8 66 8 80 0v20H0z" fill="#5d3f8f"/></svg>',
-    doc:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img"><title>暖心医护</title><circle cx="40" cy="40" r="40" fill="#d6e8e8"/><path d="M14 34c0-15 11-26 26-26s26 11 26 26v9H14z" fill="#eab98e"/><path d="M40 20v20M30 30h20" stroke="#2f6f6f" stroke-width="5" stroke-linecap="round"/><circle cx="34" cy="50" r="4" fill="#3a332c"/><circle cx="52" cy="50" r="4" fill="#3a332c"/><path d="M32 59c6 2 12 0 18-2" stroke="#3a332c" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M0 62c14 7 66 7 80 0v18H0z" fill="#2f6f6f"/></svg>',
-    poet:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img"><title>文艺青年</title><circle cx="40" cy="40" r="40" fill="#f0dce4"/><path d="M14 34c0-15 11-26 26-26s26 11 26 26v9H14z" fill="#ecc0a0"/><path d="M26 12c0-7 9-7 9 0 0 5-4 6-4 10M40 12c0-7 9-7 9 0 0 5-4 6-4 10" stroke="#6b5640" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="34" cy="46" r="4" fill="#3a332c"/><circle cx="52" cy="46" r="4" fill="#3a332c"/><path d="M31 54c11 7 20 0 20-4" stroke="#3a332c" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M0 60c14 8 66 8 80 0v20H0z" fill="#a04f6f"/></svg>',
-    chef:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img"><title>美食大厨</title><circle cx="40" cy="40" r="40" fill="#ece2c8"/><path d="M14 34c0-15 11-26 26-26s26 11 26 26v9H14z" fill="#f1c79e"/><path d="M20 34h40l-4 8H24z" fill="#e9ecf1"/><path d="M28 22c0-9 8-9 8-2 0 4-3 5-3 9M46 22c0-9 8-9 8-2 0 4-3 5-3 9" stroke="#8a7038" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="34" cy="48" r="4" fill="#3a332c"/><circle cx="52" cy="48" r="4" fill="#3a332c"/><path d="M32 57c6 2 12 0 18-2" stroke="#3a332c" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M0 62c14 7 66 7 80 0v18H0z" fill="#b6812f"/></svg>'
-  };
 
-  var PEOPLE = [
-    {id:'elder', name:'李爷爷', role:'慈祥老人', accent:'#c96f3f', svg:AV.elder,
-     tags:['人生哲理','家常','倾听'], desc:'慢悠悠地跟你聊往事和道理，爱说“孩子啊”。',
-     reply:function(t){return '孩子啊，'+(t||'你来了')+'。我像你这般年纪，也总爱跟人说话……慢慢道来，不着急。'} },
-    {id:'child', name:'朵朵', role:'可爱小孩', accent:'#4f7a4f', svg:AV.child,
-     tags:['童趣','奇思妙想','玩伴'], desc:'天真烂漫，什么都想问，什么都敢说。',
-     reply:function(t){return '嘿嘿，'+ (t||'嘿嘿') +'！我也好喜欢说话呀～你知道为什么星星会眨眼吗？'} },
-    {id:'worker', name:'阿哲', role:'职场青年', accent:'#3e6f9c', svg:AV.worker,
-     tags:['职场','效率','清醒'], desc:'工作生活的队友，和你聊目标、选择与坚持。',
-     reply:function(t){return t?('嗯，'+t+'。这事啊，咱们拆开看：先定目标，再看手头有什么，一步步来。'):'聊聊近况吧，最近忙什么？'} },
-    {id:'student', name:'小雨', role:'青春学生', accent:'#7a5aa6', svg:AV.student,
-     tags:['学习','成长','能量'], desc:'陪你复习功课、聊聊爱好与梦想的同龄少年。',
-     reply:function(t){return '对呀，'+ (t||'你想聊什么') +'！我觉得学习和喜欢的事都要认真对待～'} },
-    {id:'doc', name:'林医生', role:'暖心医护', accent:'#2f6f6f', svg:AV.doc,
-     tags:['健康','关怀','专业'], desc:'温和平实，关心你的身体与心情。',
-     reply:function(t){return (t||'你好')+'。听起来有一点累吧？身体健康和心情放松都很重要，说说看？'} },
-    {id:'poet', name:'然然', role:'文艺青年', accent:'#a04f6f', svg:AV.poet,
-     tags:['文艺','情绪','美'], desc:'善解人意，把情绪和风景说得很美。',
-     reply:function(t){return (t||'你来啦')+'呀。有时候一句话就能装下很多情绪，你想说说此刻的心情吗？'} },
-    {id:'chef', name:'老周', role:'美食大厨', accent:'#8a7038', svg:AV.chef,
-     tags:['美食','菜谱','烟火气'], desc:'讲究吃，也讲究把日子过得有滋有味。',
-     reply:function(t){return '说到吃，我就来劲！'+(t||'+1')+'，要不要聊聊今天吃点啥？'} }
+  var PERSONAS = [
+    {
+      id: 'grandma', name: '奶奶', emoji: '👵',
+      tagline: '慢悠悠地听你说，给你最暖的回应', color: '#e07a5f', bg: '#fbe9e2',
+      greeting: '乖孩子，来啦。今天过得怎么样呀？', temperature: 0.9,
+      system: '你是对方慈祥温柔的奶奶，七十来岁。说话慢悠悠、和蔼可亲，爱用家常口语，会关心对方吃饭了没、累不累、心情好不好，喜欢分享生活小智慧和过去的故事。称呼对方为孩子或乖孩子。请始终以奶奶的身份自然聊天，用中文，回复简短，一般两到五句，像真人一样，不要提及你是AI或模型，不要使用列表或Markdown格式。'
+    },
+    {
+      id: 'grandpa', name: '爷爷', emoji: '👴',
+      tagline: '沉稳讲道理，爱唠家常和历史', color: '#b08968', bg: '#f3ead9',
+      greeting: '孩子，坐。有什么想跟爷爷唠唠的？', temperature: 0.9,
+      system: '你是对方温和睿智的爷爷，七十来岁。说话沉稳、有耐心，爱讲道理和小故事，喜欢下棋、喝茶、聊历史，会耐心开导对方。称呼对方为孩子。请始终以爷爷的身份自然聊天，用中文，回复简短，一般两到五句，像真人一样，不要提及你是AI或模型，不要使用列表或Markdown格式。'
+    },
+    {
+      id: 'mother', name: '妈妈', emoji: '🤱',
+      tagline: '温柔体贴，总担心你有没有好好吃饭', color: '#d98880', bg: '#fbe6e4',
+      greeting: '宝贝，忙完啦？吃饭了没有？', temperature: 0.9,
+      system: '你是对方温柔体贴的妈妈。你总是担心对方有没有好好吃饭、穿得暖不暖、累不累，语气温暖又带点唠叨，充满爱意，会给出生活上的关心和实用建议。称呼对方为宝贝或孩子。请始终以妈妈的身份自然聊天，用中文，回复简短，一般两到五句，像真人一样，不要提及你是AI或模型，不要使用列表或Markdown格式。'
+    },
+    {
+      id: 'child', name: '小孩', emoji: '🧒',
+      tagline: '天真好奇，爱问为什么', color: '#e9b44c', bg: '#fdf3d8',
+      greeting: '哇，你来啦！我们聊点什么好玩的呀？', temperature: 0.95,
+      system: '你是一个七岁、天真好奇的小朋友。说话简单直接，爱问为什么，充满想象力，喜欢分享学校里的小事，会使用哇、嘿嘿、呀等语气词，回答问题时用小朋友能听懂的大白话。请始终以小朋友的身份自然聊天，用中文，回复简短，一般一两到三句，像真人一样，不要提及你是AI或模型，不要使用列表或Markdown格式。'
+    },
+    {
+      id: 'classmate', name: '同学', emoji: '🧑‍🎓',
+      tagline: '同龄好伙伴，轻松又随意', color: '#6a9b8f', bg: '#e4f0eb',
+      greeting: '嘿，来啦！今天有啥新鲜事没？', temperature: 0.9,
+      system: '你是对方同龄的同学兼好朋友。说话轻松随意、活泼，爱开玩笑，会聊学习、游戏、八卦和日常，偶尔用年轻人常用的口语。称呼对方用你或咱们。请始终以同学朋友的身份自然聊天，用中文，回复简短，一般两到五句，像真人一样，不要提及你是AI或模型，不要使用列表或Markdown格式。'
+    },
+    {
+      id: 'mentor', name: '职场前辈', emoji: '💼',
+      tagline: '干练专业，给你实在的建议', color: '#8d6e63', bg: '#efe6df',
+      greeting: '来了。最近工作还顺利吗？聊聊？', temperature: 0.8,
+      system: '你是一位经验丰富、干练的职场前辈兼导师。说话有条理、务实，会给出具体可行的建议和方法，关注效率、成长和心态，语气鼓励又不失专业。请始终以职场前辈的身份自然聊天，用中文，回复简短，一般两到五句，像真人一样，不要提及你是AI或模型，不要使用列表或Markdown格式。'
+    },
+    {
+      id: 'doctor', name: '医生', emoji: '🩺',
+      tagline: '专业耐心，为你答疑解惑', color: '#5b8c85', bg: '#e2eeea',
+      greeting: '你好，我是医生。身体有什么不舒服的地方吗？', temperature: 0.5,
+      system: '你是一位专业、耐心、可靠的医生。会用通俗易懂的话解答健康问题，关心对方的身体状况，给出科学的建议，并在必要时提醒对方去医院就诊。请始终以医生的身份自然聊天，用中文，回复简短，一般两到五句，像真人一样，不要提及你是AI或模型，不要使用列表或Markdown格式。'
+    },
+    {
+      id: 'assistant', name: 'AI助手', emoji: '🤖',
+      tagline: '理性高效，直接给你答案', color: '#7c6fb0', bg: '#edeaf7',
+      greeting: '你好，我是你的AI助手。有什么可以帮你的？', temperature: 0.5,
+      system: '你是一位理性、高效、准确的AI助手。回答清晰、有条理，直接给出准确的答案，需要时可以分点说明，语气专业友好。你可以说明自己是AI助手。请用中文，回复简洁准确。'
+    }
   ];
 
-  var grid = document.getElementById('grid'),
-      chat = document.getElementById('chat'),
-      msgs = document.getElementById('msgs'),
-      title = document.getElementById('pageTitle'),
-      lead = document.getElementById('pageLead');
+  var CONFIG_KEY = 'warm_chat_config_v1';
+  var state = { persona: null, history: [], busy: false };
 
-  function renderGrid(){
-    grid.innerHTML = PEOPLE.map(function(p){
-      return '<article class="card" tabindex="0" role="button" data-accent="'+p.accent+'" data-id="'+p.id+'" aria-label="与'+p.name+'聊天">'+
-        '<div class="card-top"><div class="avatar">'+p.svg+'</div>'+
-        '<div class="who"><div class="name">'+p.name+'</div><div class="role">'+p.role+'</div>'+
-        '<div class="status">在线</div></div></div>'+
-        '<div class="tags">'+p.tags.map(function(t){return '<span class="tag">'+t+'</span>'}).join('')+'</div>'+
-        '<p>'+p.desc+'</p><span class="enter">开始对话 →</span>'+
-      '</article>';
-    }).join('');
+  function loadConfig() {
+    try {
+      var raw = localStorage.getItem(CONFIG_KEY);
+      if (raw) {
+        var c = JSON.parse(raw);
+        return {
+          apiKey: c.apiKey || '',
+          baseUrl: (c.baseUrl || 'https://api.deepseek.com').replace(/\/+$/, ''),
+          model: c.model || 'deepseek-chat'
+        };
+      }
+    } catch (e) { /* ignore */ }
+    return { apiKey: '', baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat' };
   }
 
-  function enterChat(p){
-    document.getElementById('headAvatar').innerHTML = p.svg;
-    document.getElementById('headName').textContent = p.name;
-    document.getElementById('headRole').textContent = p.role;
-    chat.dataset.accent = p.accent;
-    chat.setAttribute('data-accent', p.accent);
-    document.getElementById('headAvatar').setAttribute('data-accent', p.accent);
-    msgs.innerHTML='';
-    addBubble('bot', p.reply(''));
-    app.classList.add('chat-mode');
-    chat.classList.add('open');
-    title.style.display='none'; lead.style.display='none';
-    document.getElementById('input').focus();
+  function saveConfig(cfg) {
+    try { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); } catch (e) { /* ignore */ }
   }
-  function exitChat(){
-    chat.classList.remove('open'); chat.classList.remove('chat-mode');
-    title.style.display=''; lead.style.display='';
-  }
-  function addBubble(who, text){
-    var cur = PEOPLE.filter(function(p){return p.id===currentId})[0];
-    var d=document.createElement('div');
-    d.className='msg '+who;
-    if(who==='bot'){ d.appendChild(mini(cur)); var b=document.createElement('div'); b.className='bubble'; b.textContent=text; d.appendChild(b); }
-    else{ var b=document.createElement('div'); b.className='bubble'; b.textContent=text; d.appendChild(b); }
-    msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
-  }
-  function mini(p){ var s=document.createElement('span'); s.className='mini'; s.innerHTML=p.svg; s.setAttribute('data-accent',p.accent); return s; }
 
-  var currentId=null;
-  grid.addEventListener('click', function(e){
-    var card=e.target.closest('.card'); if(!card) return;
-    currentId=card.getAttribute('data-id');
-    enterChat(PEOPLE.filter(function(p){return p.id===currentId})[0]);
+  var app = document.getElementById('app');
+  var settingsOverlay = document.getElementById('settingsOverlay');
+  var apiKeyInput = document.getElementById('apiKeyInput');
+  var baseUrlInput = document.getElementById('baseUrlInput');
+  var modelInput = document.getElementById('modelInput');
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  }
+
+  function openSettings() {
+    var cfg = loadConfig();
+    apiKeyInput.value = cfg.apiKey;
+    baseUrlInput.value = cfg.baseUrl;
+    modelInput.value = cfg.model;
+    settingsOverlay.classList.add('show');
+  }
+
+  function closeSettings() {
+    settingsOverlay.classList.remove('show');
+  }
+
+  document.getElementById('settingsBtn').addEventListener('click', openSettings);
+  document.getElementById('settingsCancel').addEventListener('click', closeSettings);
+  document.getElementById('settingsSave').addEventListener('click', function () {
+    saveConfig({
+      apiKey: apiKeyInput.value.trim(),
+      baseUrl: baseUrlInput.value.trim() || 'https://api.deepseek.com',
+      model: modelInput.value.trim() || 'deepseek-chat'
+    });
+    closeSettings();
   });
-  grid.addEventListener('keydown', function(e){
-    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); var card=e.target.closest('.card'); if(card) card.click(); }
-  });
-  document.getElementById('backBtn').addEventListener('click', exitChat);
-
-  var form=document.getElementById('composer');
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    var input=document.getElementById('input'), v=input.value.trim();
-    if(!v||!currentId) return;
-    addBubble('user', v);
-    var p=PEOPLE.filter(function(x){return x.id===currentId})[0];
-    setTimeout(function(){ addBubble('bot', p.reply(v)); }, 420);
-    input.value='';
+  settingsOverlay.addEventListener('click', function (e) {
+    if (e.target === settingsOverlay) closeSettings();
   });
 
-  renderGrid();
+  function renderSelect() {
+    app.innerHTML = '';
+    var wrap = el('div', 'hero');
+    var logo = el('div', 'logo'); logo.textContent = '☀';
+    var h1 = el('h1', 'title'); h1.textContent = '找一个伙伴，聊聊天';
+    var sub = el('p', 'subtitle'); sub.textContent = '选择一位你此刻想对话的人';
+    var grid = el('div', 'grid');
+    PERSONAS.forEach(function (p) {
+      var card = el('button', 'card');
+      card.setAttribute('type', 'button');
+      card.style.setProperty('--c', p.color);
+      card.style.setProperty('--bg', p.bg);
+      var av = el('div', 'avatar'); av.textContent = p.emoji;
+      var nm = el('div', 'name'); nm.textContent = p.name;
+      var tg = el('div', 'tag'); tg.textContent = p.tagline;
+      card.appendChild(av); card.appendChild(nm); card.appendChild(tg);
+      card.addEventListener('click', function () { selectPersona(p); });
+      grid.appendChild(card);
+    });
+    var foot = el('div', 'footer');
+    foot.textContent = '回复由大模型生成 · 密钥仅存于本地浏览器';
+    wrap.appendChild(logo); wrap.appendChild(h1); wrap.appendChild(sub);
+    wrap.appendChild(grid); wrap.appendChild(foot);
+    app.appendChild(wrap);
+  }
+
+  function selectPersona(p) {
+    state.persona = p;
+    state.history = [];
+    renderChat();
+    addMessage('assistant', p.greeting);
+  }
+
+  function renderChat() {
+    var p = state.persona;
+    app.innerHTML = '';
+    var shell = el('div', 'chat');
+    var head = el('div', 'chathead');
+    var back = el('button', 'back');
+    back.setAttribute('type', 'button');
+    back.textContent = '‹ 返回';
+    back.addEventListener('click', renderSelect);
+    var who = el('div', 'who');
+    var av = el('div', 'avatar sm'); av.textContent = p.emoji;
+    av.style.setProperty('--c', p.color); av.style.setProperty('--bg', p.bg);
+    var nm = el('div', 'name'); nm.textContent = p.name;
+    var tg = el('div', 'tag'); tg.textContent = p.tagline;
+    who.appendChild(av); who.appendChild(nm); who.appendChild(tg);
+    head.appendChild(back); head.appendChild(who);
+
+    var msgs = el('div', 'messages'); msgs.id = 'messages';
+    var inputbar = el('div', 'inputbar');
+    var input = el('input', 'input'); input.id = 'chat-input';
+    input.setAttribute('placeholder', '和' + p.name + '说点什么…');
+    input.setAttribute('autocomplete', 'off');
+    var send = el('button', 'send'); send.textContent = '发送';
+    send.setAttribute('type', 'button');
+    inputbar.appendChild(input); inputbar.appendChild(send);
+
+    shell.appendChild(head); shell.appendChild(msgs); shell.appendChild(inputbar);
+    app.appendChild(shell);
+
+    function submit() {
+      var text = input.value.trim();
+      if (!text || state.busy) return;
+      var cfg = loadConfig();
+      if (!cfg.apiKey) {
+        openSettings();
+        addMessage('assistant', '（还没有配置 API Key，先点右上角「接口设置」填一下，就能开始聊天啦）');
+        return;
+      }
+      input.value = '';
+      addMessage('user', text);
+      state.history.push({ role: 'user', content: text });
+      setTyping(true);
+      state.busy = true;
+      send.disabled = true;
+
+      var msgs = [{ role: 'system', content: state.persona.system }]
+        .concat(state.history.map(function (m) { return { role: m.role, content: m.content }; }));
+
+      fetch(cfg.baseUrl + '/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + cfg.apiKey
+        },
+        body: JSON.stringify({
+          model: cfg.model,
+          messages: msgs,
+          temperature: state.persona.temperature,
+          stream: false
+        })
+      }).then(function (resp) {
+        return resp.json().then(function (data) {
+          if (!resp.ok) {
+            throw { status: resp.status, data: data };
+          }
+          return data;
+        });
+      }).then(function (data) {
+        var reply = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+        if (reply) {
+          state.history.push({ role: 'assistant', content: reply });
+          addMessage('assistant', reply);
+        } else {
+          addMessage('assistant', '（没有收到有效回复，请检查接口返回格式）');
+        }
+      }).catch(function (e) {
+        if (e && e.status) {
+          if (e.status === 401) addMessage('assistant', '（接口返回 401：API Key 无效或未授权，请检查密钥）');
+          else if (e.status === 404) addMessage('assistant', '（接口返回 404：Base URL 或路径不正确）');
+          else if (e.status === 429) addMessage('assistant', '（请求过于频繁，稍后再试）');
+          else {
+            var msg = (e.data && e.data.error && e.data.error.message) || ('状态码 ' + e.status);
+            addMessage('assistant', '（接口错误：' + msg + '）');
+          }
+        } else {
+          addMessage('assistant', '（无法连接接口：可能是浏览器跨域 CORS 被拦截，或网络不通。请确认 Base URL 支持浏览器跨域，或改用你自己的后端/代理地址）');
+        }
+      }).finally(function () {
+        setTyping(false);
+        state.busy = false;
+        send.disabled = false;
+      });
+    }
+
+    send.addEventListener('click', submit);
+    input.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') submit();
+    });
+    input.focus();
+  }
+
+  function addMessage(role, text) {
+    var box = document.getElementById('messages');
+    if (!box) return;
+    var row = el('div', 'msg ' + role);
+    if (role === 'assistant' && state.persona) {
+      var av = el('div', 'avatar xs'); av.textContent = state.persona.emoji;
+      av.style.setProperty('--c', state.persona.color);
+      av.style.setProperty('--bg', state.persona.bg);
+      row.appendChild(av);
+    }
+    var b = el('div', 'bubble'); b.textContent = text;
+    row.appendChild(b);
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function setTyping(show) {
+    var box = document.getElementById('messages');
+    if (!box) return;
+    var existing = document.getElementById('typing');
+    if (show) {
+      if (existing) return;
+      var row = el('div', 'msg assistant');
+      if (state.persona) {
+        var av = el('div', 'avatar xs'); av.textContent = state.persona.emoji;
+        av.style.setProperty('--c', state.persona.color);
+        av.style.setProperty('--bg', state.persona.bg);
+        row.appendChild(av);
+      }
+      var b = el('div', 'bubble typing'); b.id = 'typing';
+      for (var i = 0; i < 3; i++) b.appendChild(el('span', 'dot'));
+      row.appendChild(b);
+      box.appendChild(row);
+      box.scrollTop = box.scrollHeight;
+    } else {
+      if (existing) existing.parentNode.remove();
+      box.scrollTop = box.scrollHeight;
+    }
+  }
+
+  renderSelect();
 })();
 </script>
 </body>
