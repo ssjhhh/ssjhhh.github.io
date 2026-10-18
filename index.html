@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>遇AI · 选人聊天</title>
+<style>
+  :root{
+    --canvas:#f7f3ec;
+    --surface:#ffffff;
+    --surface-soft:#efe9de;
+    --ink:#2f2a24;
+    --ink-2:#6f665b;
+    --line:#e3dccf;
+    --accent:#c96f3f;
+    --accent-ink:#ffffff;
+    --focus:#b95f33;
+    --ok:#4f7a4f;
+    --radius-lg:22px;
+    --radius:14px;
+    --radius-sm:10px;
+    --shadow:0 10px 30px rgba(64,52,38,.10);
+    --shadow-sm:0 3px 12px rgba(64,52,38,.08);
+    --font:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --space-1:8px;--space-2:14px;--space-3:22px;--space-4:34px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font);background:var(--canvas);color:var(--ink);
+    line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased;
+  }
+  [data-accent="#c96f3f"]{--accent:#c96f3f;--soft:#f7e3d4}
+  [data-accent="#4f7a4f"]{--accent:#4f7a4f;--soft:#dce9d9}
+  [data-accent="#3e6f9c"]{--accent:#3e6f9c;--soft:#d9e4ef}
+  [data-accent="#7a5aa6"]{--accent:#7a5aa6;--soft:#e5def0}
+  [data-accent="#2f6f6f"]{--accent:#2f6f6f;--soft:#d6e8e8}
+  [data-accent="#a04f6f"]{--accent:#a04f6f;--soft:#f0dce4}
+  [data-accent="#8a7038"]{--accent:#8a7038;--soft:#ece2c8}
+  .app{max-width:1080px;margin:0 auto;padding:var(--space-4) var(--space-3)}
+  h1{font-size:clamp(1.6rem,3.6vw,2.4rem);line-height:1.2;margin:0 0 6px;letter-spacing:.5px}
+  .lead{color:var(--ink-2);margin:0 0 var(--space-4);font-size:1.02rem}
+  .section-label{font-size:.82rem;letter-spacing:.12em;color:var(--ink-2);margin:var(--space-3) 0 var(--space-2);text-transform:uppercase}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:var(--space-2)}
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:var(--space-3);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease;
+    display:flex;flex-direction:column;gap:var(--space-2);position:relative;min-width:0;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .card:active{transform:translateY(0)}
+  .card:focus-visible,.btn:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  .card-top{display:flex;align-items:center;gap:var(--space-2)}
+  .avatar{width:64px;height:64px;flex:0 0 auto;border-radius:50%;border:3px solid var(--accent);background:var(--soft);overflow:hidden}
+  .avatar svg{width:100%;height:100%;display:block}
+  .who{min-width:0}
+  .who .name{font-size:1.14rem;font-weight:700}
+  .who .role{font-size:.82rem;color:var(--accent);font-weight:600}
+  .who .status{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;color:var(--ink-2);margin-top:3px}
+  .who .status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);flex:0 0 auto}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-size:.74rem;background:var(--surface-soft);padding:2px 9px;border-radius:999px;color:var(--ink-2)}
+  .card p{font-size:.9rem;color:var(--ink-2);margin:0;flex:1}
+  .enter{margin-top:auto;display:inline-block;width:fit-content;font-size:.86rem;font-weight:600;color:var(--accent)}
+  .chat{display:none;max-width:760px;margin:0 auto;flex-direction:column;height:calc(100vh - 40px)}
+  .chat.open{display:flex}
+  .chat-head{display:flex;align-items:center;gap:var(--space-2);padding:10px 0;border-bottom:1px solid var(--line)}
+  .chat-head .avatar{width:44px;height:44px;border-width:2px}
+  .chat-head .back{font-size:1.4rem;line-height:1;background:none;border:none;cursor:pointer;color:var(--ink);padding:4px 8px;border-radius:8px}
+  .chat-head .back:hover{background:var(--surface-soft)}
+  .chat-head h2{margin:0;font-size:1.1rem}
+  .chat-head .role{font-size:.78rem;color:var(--accent);font-weight:600}
+  .msgs{flex:1;overflow-y:auto;padding:var(--space-3) 2px;display:flex;flex-direction:column;gap:var(--space-2)}
+  .msg{display:flex;gap:10px;max-width:82%;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .msg .mini{width:36px;height:36px;flex:0 0 auto;border-radius:50%;border:2px solid var(--accent);overflow:hidden;background:var(--soft)}
+  .msg.bot{align-self:flex-start}
+  .msg.user{align-self:flex-end;flex-direction:row-reverse}
+  .bubble{padding:10px 14px;border-radius:16px;font-size:.95rem;white-space:pre-wrap;overflow-wrap:break-word}
+  .msg.bot .bubble{background:var(--surface);border:1px solid var(--line);border-top-left-radius:4px}
+  .msg.user .bubble{background:var(--accent);color:var(--accent-ink);border-top-right-radius:4px}
+  .tips{margin:2px 0 0 46px;font-size:.74rem;color:var(--ink-2)}
+  .composer{display:flex;gap:10px;padding:12px 0 6px;border-top:1px solid var(--line)}
+  .composer input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 16px;font-size:.95rem;font-family:var(--font);background:var(--surface)}
+  .composer .btn{background:var(--accent);color:var(--accent-ink);border:none;border-radius:999px;padding:0 20px;font-size:1rem;cursor:pointer;font-weight:600}
+  .composer .btn:hover{filter:brightness(1.06)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  @media (max-width:560px){
+    .app{padding:var(--space-3) var(--space-2)}
+    .grid{grid-template-columns:1fr}
+  }
+  @media print{
+    body{background:#fff}
+    .card{border-color:#000}
+    .enter,.chat{display:none}
+    .grid{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+<main class="app" id="app">
+  <header>
+    <h1 id="pageTitle">遇AI · 选个人，聊聊心里话</h1>
+    <p class="lead" id="pageLead">选一位你喜欢的人，进入和 TA 的专属对话。</p>
+  </header>
+
+  <section aria-label="选择聊天对象">
+    <div id="grid" class="grid"></div>
+  </section>
+
+  <section id="chat" class="chat" aria-label="对话">
+    <div class="chat-head">
+      <button class="back" id="backBtn" aria-label="返回选择人物">‹</button>
+      <div class="avatar" id="headAvatar" aria-hidden="true"></div>
+      <div>
+        <h2 id="headName"></h2>
+        <div class="role" id="headRole"></div>
+      </div>
+    </div>
+
+    <div class="msgs" id="msgs" role="log" aria-live="polite"></div>
+    <div class="tips">输入的只是一句问候，TA 会以各自的方式回应。</div>
+
+    <form class="composer" id="composer" autocomplete="off">
+      <label for="input" class="visually-hidden" style="position:absolute;left:-9999px">输入消息</label>
+      <input id="input" type="text" placeholder="说点什么..." aria-label="输入消息">
+      <button class="btn" type="submit">发送</button>
+    </form>
+  </section>
+</main>
+
+<script>
+(function(){
+  'use strict';
+
+  var AV = {
+    elder:'<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img"><title>慈祥老人</title><circle cx="40" cy="40" r="40" fill="#f7e3d4"/><path d="M14 34c0-16 12-27 26-27s26 11 26 27v8H14z" fill="#e8d3bd"/><path d="M22 26c1-15 8-19 18-19V6c14 0 23 10 23 22v6H22z"
